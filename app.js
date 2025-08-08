@@ -87,11 +87,4 @@ mongoose
   .then(() => console.log("Terhubung Database"))
   .catch((err) => console.error("Koneksi Database GAGAL:", err));
 
-// ▼▼▼ PERBAIKI DI SINI: Hanya jalankan app.listen() di lingkungan pengembangan ▼▼▼
-if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`Berlari di http://localhost:${port}`);
-  });
-}
-
 export default app;
