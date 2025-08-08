@@ -1,0 +1,88 @@
+import express from "express";
+import {
+  registerRequest,
+  verifyUser,
+  resendVerification,
+  loginUser,
+  getUser,
+  getUserStats,
+  createAdmin,
+  deleteAdmin,
+  updateAdmin,
+  getManagementUsers,
+  getUsers,
+  deleteUserByAdmin,
+  logoutUser,
+  updateUserProfile,
+  googleLogin,
+} from "../controllers/userControllers.js";
+import {
+  protectedMiddleware,
+  roleMiddleware,
+  superAdminMiddleware,
+} from "../middlewares/authMiddleware.js";
+import upload from "../utils/upload.js";
+
+const router = express.Router();
+
+// Rute Otentikasi & Sesi
+router.post("/register-request", registerRequest);
+router.post("/register-verify", verifyUser);
+router.post("/resend-verification", resendVerification);
+router.post("/login", loginUser);
+router.post("/google", googleLogin);
+router.get("/logout", protectedMiddleware, logoutUser);
+
+// Rute Data Pengguna
+router.get("/getuser", protectedMiddleware, getUser);
+router.route("/profile").put(
+  protectedMiddleware,
+  (req, res, next) => {
+    const sanitizedName = req.user.fullName.toLowerCase().replace(/\s/g, "-");
+    req.uploadFolder = `user-profile-pictures/${sanitizedName}`;
+    next();
+  },
+  upload.single("profilePicture"),
+  updateUserProfile
+);
+
+// Rute Manajemen (Admin & SuperAdmin)
+router.get(
+  "/stats",
+  protectedMiddleware,
+  roleMiddleware("admin", "superAdmin"),
+  getUserStats
+);
+router.get(
+  "/management/users",
+  protectedMiddleware,
+  superAdminMiddleware,
+  getManagementUsers
+);
+router.get(
+  "/users",
+  protectedMiddleware,
+  roleMiddleware("admin", "superAdmin"),
+  getUsers
+);
+router.post("/admins", protectedMiddleware, superAdminMiddleware, createAdmin);
+router.delete(
+  "/admins/:id",
+  protectedMiddleware,
+  superAdminMiddleware,
+  deleteAdmin
+);
+router.put(
+  "/admins/:id",
+  protectedMiddleware,
+  superAdminMiddleware,
+  updateAdmin
+);
+router.delete(
+  "/users/:id",
+  protectedMiddleware,
+  roleMiddleware("admin", "superAdmin"),
+  deleteUserByAdmin
+);
+
+export default router;
