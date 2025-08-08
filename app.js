@@ -87,4 +87,10 @@ mongoose
   .then(() => console.log("Terhubung Database"))
   .catch((err) => console.error("Koneksi Database GAGAL:", err));
 
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Berlari di http://localhost:${port}`);
+  });
+}
+
 export default app;
