@@ -83,11 +83,15 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Server & DB
-app.listen(port, () => {
-  console.log(`Berlari di http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Berlari di http://localhost:${port}`);
+  });
+}
 
 mongoose
   .connect(process.env.DATABASE, {})
   .then(() => console.log("Terhubung Database"))
   .catch((err) => console.error("Koneksi Database GAGAL:", err));
+
+export default app;
