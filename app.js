@@ -48,7 +48,10 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.VERCEL_URL
+        : "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
