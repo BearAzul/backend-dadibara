@@ -1,26 +1,16 @@
 console.log(
-  "--- SERVER MENJALANKAN di Waktu " + new Date().toLocaleTimeString() + " ---"
+  "--- SERVER MENJALANKAN VERSI " + new Date().toLocaleTimeString() + " ---"
 );
-
-import dotenv from "dotenv";
-dotenv.config();
 
 import express from "express";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import path from "path";
-import { v2 as cloudinary } from "cloudinary";
 import { fileURLToPath } from "url";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
 
 // ROUTES
 import userRouter from "./routers/userRouter.js";
@@ -34,6 +24,15 @@ import keuanganRouter from "./routers/keuanganRouter.js";
 import memberRoutes from "./routers/memberRoute.js";
 import skRouter from "./routers/skRouter.js";
 import pendaftaranRouter from "./routers/pendaftaranRouter.js";
+import { v2 as cloudinary } from "cloudinary";
+
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -49,7 +48,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
@@ -75,6 +74,7 @@ app.use("/api/gallery", galleryRouter);
 app.use("/api/keuangan", keuanganRouter);
 app.use("/api/members", memberRoutes);
 app.use("/api/sk", skRouter);
+// ...
 app.use("/api/pendaftaran", pendaftaranRouter);
 
 // Error Handling Middleware
@@ -82,9 +82,11 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Server & DB
+app.listen(port, () => {
+  console.log(`Berlari di http://localhost:${port}`);
+});
+
 mongoose
   .connect(process.env.DATABASE, {})
   .then(() => console.log("Terhubung Database"))
   .catch((err) => console.error("Koneksi Database GAGAL:", err));
-
-export default app;

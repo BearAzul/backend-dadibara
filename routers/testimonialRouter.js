@@ -12,22 +12,24 @@ import {
 
 const router = express.Router();
 
+// Rute untuk publik dan user
 router
   .route("/")
   .get(getTestimonials)
   .post(protectedMiddleware, createTestimonial);
 
-router.post(
-  "/",
+// Rute khusus admin
+router.get(
+  "/admin",
   protectedMiddleware,
-  roleMiddleware("user"),
-  createTestimonial
+  roleMiddleware("admin", "superAdmin"),
+  getAllTestimonialsAdmin
 );
-
-// Rute untuk admin mengambil semua testimoni
-router.get('/admin', protectedMiddleware, roleMiddleware('admin', 'superAdmin'), getAllTestimonialsAdmin);
-
-// Rute untuk admin mengarsipkan testimoni
-router.patch('/:id/archive', protectedMiddleware, roleMiddleware('admin', 'superAdmin'), toggleArchiveTestimonial);
+router.patch(
+  "/:id/archive",
+  protectedMiddleware,
+  roleMiddleware("admin", "superAdmin"),
+  toggleArchiveTestimonial
+);
 
 export default router;

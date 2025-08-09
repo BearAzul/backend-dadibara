@@ -1,3 +1,4 @@
+// routers/keuanganRouter.js
 import express from "express";
 import {
   getTransactions,
@@ -19,10 +20,6 @@ router
   .post(
     protectedMiddleware,
     adminMiddleware,
-    (req, res, next) => {
-      req.uploadFolder = "keuangan-dokumen";
-      next();
-    },
     upload.single("document"),
     createTransaction
   );
@@ -32,10 +29,6 @@ router
   .put(
     protectedMiddleware,
     adminMiddleware,
-    (req, res, next) => {
-      req.uploadFolder = "keuangan-dokumen";
-      next();
-    },
     upload.single("document"),
     updateTransaction
   )

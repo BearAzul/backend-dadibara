@@ -10,7 +10,6 @@ import upload from "../utils/upload.js";
 import {
   protectedMiddleware,
   roleMiddleware,
-  adminMiddleware,
 } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
@@ -24,18 +23,6 @@ router
     upload.single("foto"),
     createMember
   );
-
-router.route("/").post(
-  protectedMiddleware,
-  adminMiddleware,
-  (req, res, next) => {
-    // Folder dinamis, sesuai dengan nama member
-    req.uploadFolder = `karang-taruna-uploads/${req.body.nama.toLowerCase().replace(/\s/g, "-")}`;
-    next();
-  },
-  upload.single("foto"),
-  createMember
-);
 
 router
   .route("/:id")

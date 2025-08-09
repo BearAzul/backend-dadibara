@@ -1,10 +1,9 @@
-// routers/landingConfigRoutes.js
 import express from "express";
 import {
   getLandingConfig,
   updateLandingConfig,
 } from "../controllers/landingConfigController.js";
-import upload from "../utils/upload.js";
+import upload from "../utils/upload.js"; // Konfigurasi multer
 import {
   protectedMiddleware,
   adminMiddleware,
@@ -14,19 +13,15 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(getLandingConfig)
+  .get(getLandingConfig) // Rute publik untuk mengambil data
   .put(
     protectedMiddleware,
     adminMiddleware,
-    (req, res, next) => {
-      req.uploadFolder = "landing-page-logos";
-      next();
-    },
     upload.fields([
       { name: "logoDadiBara", maxCount: 1 },
       { name: "logoDesaBaru", maxCount: 1 },
     ]),
     updateLandingConfig
-  );
+  ); // Rute aman untuk update
 
 export default router;

@@ -1,24 +1,20 @@
 // routers/skRouter.js
 import express from "express";
 import { getSkDocument, uploadSk } from "../controllers/skController.js";
-import upload from "../utils/upload.js";
+import upload from "../utils/upload.js"; // Middleware Multer
 import {
   protectedMiddleware,
-  roleMiddleware,
+  adminMiddleware,
 } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router
   .route("/")
-  .get(getSkDocument)
+  .get(getSkDocument) // Rute publik untuk menampilkan SK
   .post(
     protectedMiddleware,
-    roleMiddleware("admin", "superAdmin"),
-    (req, res, next) => {
-      req.uploadFolder = "sk-dokumen";
-      next();
-    },
+    adminMiddleware,
     upload.single("sk_document"),
     uploadSk
   );

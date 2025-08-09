@@ -6,7 +6,7 @@ import {
   updateGalleryImage,
   deleteGalleryImage,
 } from "../controllers/galleryController.js";
-import upload from "../utils/upload.js";
+import upload from "../utils/upload.js"; // Middleware Multer untuk file
 import {
   protectedMiddleware,
   adminMiddleware,
@@ -20,10 +20,6 @@ router
   .post(
     protectedMiddleware,
     adminMiddleware,
-    (req, res, next) => {
-      req.uploadFolder = "galeri-kartar-upload";
-      next();
-    },
     upload.single("image"),
     createGalleryImage
   );
@@ -33,10 +29,6 @@ router
   .put(
     protectedMiddleware,
     adminMiddleware,
-    (req, res, next) => {
-      req.uploadFolder = "galeri-kartar-upload";
-      next();
-    },
     upload.single("image"),
     updateGalleryImage
   )

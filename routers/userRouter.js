@@ -15,6 +15,7 @@ import {
   logoutUser,
   updateUserProfile,
   googleLogin,
+
 } from "../controllers/userControllers.js";
 import {
   protectedMiddleware,
@@ -35,13 +36,9 @@ router.get("/logout", protectedMiddleware, logoutUser);
 
 // Rute Data Pengguna
 router.get("/getuser", protectedMiddleware, getUser);
-router.route("/profile").put(
+router.put(
+  "/profile",
   protectedMiddleware,
-  (req, res, next) => {
-    const sanitizedName = req.user.fullName.toLowerCase().replace(/\s/g, "-");
-    req.uploadFolder = `user-profile-pictures/${sanitizedName}`;
-    next();
-  },
   upload.single("profilePicture"),
   updateUserProfile
 );

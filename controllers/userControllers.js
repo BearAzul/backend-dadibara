@@ -5,6 +5,8 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 import { sendEmailVerify } from "../utils/sendEmail.js";
 import { OAuth2Client } from "google-auth-library";
 import Testimonial from "../models/TestimonialModel.js";
+import { v2 as cloudinary } from "cloudinary";
+import streamifier from "streamifier";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -30,6 +32,28 @@ const createSendResToken = (user, statusCode, res) => {
   user.password = undefined;
   res.status(statusCode).json({
     user: user,
+  });
+};
+
+const streamUpload = (req) => {
+  return new Promise((resolve, reject) => {
+    const folderName = req.uploadFolder || "karang-taruna-uploads";
+
+    let stream = cloudinary.uploader.upload_stream(
+      {
+        folder: folderName,
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (result) {
+          resolve(result);
+        } else {
+          reject(error);
+        }
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(stream);
   });
 };
 
@@ -178,15 +202,13 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error("Email/Password tidak boleh kosong");
   }
 
-  const userData = await User.findOne({ email: email });
+  const userData = await User.findOne({ email });
 
-  // 1. Cek apakah user ada DAN password cocok
   if (!userData || !(await userData.comparePassword(password))) {
-    res.status(401); // Unauthorized
+    res.status(401);
     throw new Error("Email atau Password tidak sesuai");
   }
 
-  // 2. TAMBAHAN PENTING: Cek apakah user sudah terverifikasi
   if (userData.role === "user" && !userData.isVerified) {
     res.status(403);
     throw new Error("Akun Anda belum diverifikasi. Silakan cek email Anda.");
@@ -310,37 +332,6 @@ export const getUsers = asyncHandler(async (req, res) => {
   res.status(200).json({ users });
 });
 
-export const updateProfilePicture = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    res.status(400);
-    throw new Error("Tidak ada file yang diunggah.");
-  }
-
-  const user = await User.findById(req.user._id);
-  if (user) {
-    user.profilePicture = req.file.path.replace(/\\/g, "/");
-
-    const updatedUser = await user.save();
-    updatedUser.password = undefined;
-
-    res.status(200).json({
-      user: {
-        _id: updatedUser._id,
-        fullName: updatedUser.fullName,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        role: updatedUser.role,
-        gender: updatedUser.gender,
-        address: updatedUser.address,
-        profilePicture: updatedUser.profilePicture,
-      },
-    });
-  } else {
-    res.status(404);
-    throw new Error("User tidak ditemukan");
-  }
-});
-
 export const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -352,10 +343,10 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     user.address = req.body.address;
 
     if (req.file) {
-      user.profilePicture = req.file.path; // path dari Cloudinary (URL lengkap)
+      const result = await streamUpload(req);
+      user.profilePicture = result.secure_url;
     }
 
-    // 3. Validasi dan update password JIKA diisi
     if (req.body.oldPassword && req.body.password) {
       const isMatch = await user.comparePassword(req.body.oldPassword);
       if (!isMatch) {
@@ -365,11 +356,9 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       user.password = req.body.password;
     }
 
-    // 4. Simpan semua perubahan ke database
     const updatedUser = await user.save();
-    updatedUser.password = undefined; // Jangan kirim password kembali
+    updatedUser.password = undefined;
 
-    // 5. Kirim kembali data user yang LENGKAP ke frontend
     res.status(200).json({ user: updatedUser });
   } else {
     res.status(404);

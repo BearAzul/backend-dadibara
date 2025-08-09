@@ -12,9 +12,6 @@ export const getTestimonials = asyncHandler(async (req, res) => {
   res.status(200).json({ testimonials });
 });
 
-// @desc    Membuat testimoni baru
-// @route   POST /api/testimonials
-// @access  Private (butuh login)
 export const createTestimonial = asyncHandler(async (req, res) => {
   const { message, rating } = req.body;
   const existingTestimonial = await Testimonial.findOne({ user: req.user._id });
@@ -34,13 +31,8 @@ export const createTestimonial = asyncHandler(async (req, res) => {
   await createdTestimonial.populate("user", "fullName profilePicture");
 
   res.status(201).json({ testimonial: createdTestimonial });
-}); // <-- FUNGSI createTestimonial SELESAI DI SINI
+});
 
-// ▼▼▼ FUNGSI-FUNGSI DI BAWAH INI SEHARUSNYA BERADA DI LUAR ▼▼▼
-
-// @desc    Mengambil SEMUA testimoni untuk admin
-// @route   GET /api/testimonials/admin
-// @access  Admin
 export const getAllTestimonialsAdmin = asyncHandler(async (req, res) => {
   const testimonials = await Testimonial.find({}) // Tanpa filter
     .populate("user", "fullName profilePicture")
@@ -48,17 +40,18 @@ export const getAllTestimonialsAdmin = asyncHandler(async (req, res) => {
   res.status(200).json({ testimonials });
 });
 
-// @desc    Mengubah status arsip (archive/un-archive)
-// @route   PATCH /api/testimonials/:id/archive
-// @access  Admin
 export const toggleArchiveTestimonial = asyncHandler(async (req, res) => {
   const testimonial = await Testimonial.findById(req.params.id);
+
   if (testimonial) {
-    testimonial.isArchived = !testimonial.isArchived; // Balikkan nilainya
-    await testimonial.save();
-    res.status(200).json({ message: "Status testimoni berhasil diubah." });
+    testimonial.isArchived = !testimonial.isArchived;
+    const updatedTestimonial = await testimonial.save();
+    res.status(200).json({
+      message: "Status testimoni berhasil diubah.",
+      testimonial: updatedTestimonial, 
+    });
   } else {
-    res.status(444);
+    res.status(404);
     throw new Error("Testimoni tidak ditemukan.");
   }
 });
