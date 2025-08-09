@@ -1,4 +1,4 @@
-import LandingConfig from "../models/LandingConfigModel.js";
+import LandingConfig from "../models/landingConfigModel.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
